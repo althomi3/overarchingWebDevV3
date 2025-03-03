@@ -8,9 +8,12 @@ export const actions = {
     },
     register: async ({ request }) => {
       const data = await request.formData();
+      const email = data.get("email");
+      data.set("email", email + ":)")
       console.log("Received a register request with the following data.");
       console.log(data);
-  
-      return { message: "Thanks!" };
+      
+      return { email: data.get("email")} ; 
+      // return { message: "Thanks!" };
     },
   };

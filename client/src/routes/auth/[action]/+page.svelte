@@ -28,6 +28,8 @@
   {#if message}
     <p class="text-xl">Message from server: {message}</p>
   {/if}
+
+  <p>{form.email}</p>
   
   <form class="space-y-4" method="POST" action="?/{data.action}">
     <label class="label" for="email">
