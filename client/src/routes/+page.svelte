@@ -1,6 +1,30 @@
 <script>
    // import Message from "$lib/components/Message.svelte";
-    let count = $state(0);
+    // let count = $state(0);
+    import TodoForm from "$lib/components/TodoForm.svelte";
+    import Todo from "$lib/components/Todo.svelte";
+    import { fade } from "svelte/transition";
+    import { getContext } from "svelte";
+    const toast = getContext("toast");
+
+    let todos = $state([
+    { name: "First todo", done: false },
+    { name: "Second todo", done: true },
+    { name: "Third todo", done: false },
+  ]);
+
+  const remove = (todo) => {
+    if (Math.random() < 0.9) {
+      toast.create({
+        title: "Error",
+        description: "Failed to remove todo",
+        type: "error",
+      });
+			return;
+    }
+
+    todos = todos.filter((t) => t !== todo);
+  };
 
 </script>
 
@@ -12,44 +36,15 @@
   <p>Count: {count}</p>
   <button onclick={() => count++}>increment</button>-->
 
+ 
+<TodoForm />
+<ul class="space-y-4">
+  {#each todos as todo (todo)}
+    <li transition:fade>
+      <Todo {todo} removeTodo={() => remove(todo)} />
+    </li>
+  {/each}
+</ul>
 
-  <form class="max-w-sm mx-auto mt-6">
-    <h2 class="text-2xl mb-4">Create a todo</h2>
-    <div class="mb-4">
-      <label for="name">Name</label>
-      <input
-        type="text"
-        id="name"
-        name="name"
-        class="w-full"
-        placeholder="Enter name"
-      />
-    </div>
-  
-    <div class="mb-4 items-center">
-      <input type="checkbox" id="completed" name="completed" />
-      <label for="completed" class="ml-2">Completed</label>
-    </div>
-  
-    <input
-      type="submit"
-      class="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
-      value="Create"
-    />
-  </form>
 
-  <form class="mx-auto w-full max-w-md space-y-4">
-    <h2 class="h2">Create a todo</h2>
-  
-    <label for="name" class="label">
-      <span class="label-text">Name</span>
-      <input class="input" type="text" id="name" name="name" />
-    </label>
-  
-    <label class="flex items-center space-x-2">
-      <input class="checkbox" type="checkbox" id="completed" name="completed" />
-      <p>Completed</p>
-    </label>
-  
-    <button type="submit" class="w-full btn preset-filled-primary-500">Create</button>
-  </form>
+ 
