@@ -1,5 +1,5 @@
 <script>
-  export const prerender = true;
+  //export const prerender = true;
   import "../app.css";
   let { children } = $props();
   import Header from "$lib/components/layout/Header.svelte";

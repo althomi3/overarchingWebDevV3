@@ -73,4 +73,11 @@ app.post("/api/auth/register", async (c) => {
     }
   });
 
+  // Username: in: JSON with property username, out: JSON with property data
+  app.post("/api/user", async (c) => {
+    const data = await c.req.json();
+    console.log("data received by BE server", data)
+    return c.json( {data: data.username} );
+  });
+
 export default app;

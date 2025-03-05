@@ -29,7 +29,13 @@
     <p class="text-xl">Message from server: {message}</p>
   {/if}
 
-  <p>{form.email}</p>
+  {#if data.registered}
+  <p class="text-xl">
+    You have successfully registered. Please login to continue.
+  </p>
+  {/if}
+
+  <p>{form?.email ?? "No email provided"}</p>
   
   <form class="space-y-4" method="POST" action="?/{data.action}">
     <label class="label" for="email">
