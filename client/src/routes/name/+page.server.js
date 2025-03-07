@@ -34,19 +34,21 @@ export const actions = {
     username: async ({ request }) => {
       const data = await request.formData();
       console.log("data in username action", data)
+      const name = data.get("username");
+      
+      if (name === "target") {
+        throw redirect(302, "/target");
+      }
+  
+      // Otherwise, make API request and return data
       const response = await apiRequest(
         "/api/user",
         Object.fromEntries(data),
-      );
+      );      
+      
       const responseData = await response.json();
-      console.log("response data", responseData)
-      if ( responseData.data == "target") {
-        console.log("data.username = target")
-        throw redirect (302, "/target")
-      }
-      else {
-        return (responseData)
-      };
+      console.log("responseData:", responseData);
+      return ({ data: responseData.data});
     },
   };
   

@@ -3,6 +3,7 @@ import { cors } from "@hono/hono/cors";
 import { logger } from "@hono/hono/logger";
 import postgres from "postgres";
 import { hash, verify } from "jsr:@denorg/scrypt@4.4.4";
+import { getCookie, setCookie } from "jsr:@hono/hono@4.6.5/cookie";
 
 // Passwords / Hashes
 const hashedPassword = hash("saippuakivikauppias");
@@ -19,7 +20,14 @@ console.log(passwordsDoNotMatch); // false: string does not match hash
 const app = new Hono();
 const sql = postgres();
 
-app.use("/*", cors());
+app.use(
+  "/*",
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
+
 app.use("/*", logger());
 
 app.get("/", (c) => c.json({ message: "Hello world!" }));
@@ -43,7 +51,8 @@ app.post("/api/auth/register", async (c) => {
   });
 
 // Login
-  app.post("/api/auth/login", async (c) => {
+  const COOKIE_KEY_AUTH = "auth";
+  /*app.post("/api/auth/login", async (c) => {
     const data = await c.req.json();
     
     // looks up user based on receives email in DB
@@ -62,6 +71,13 @@ app.post("/api/auth/register", async (c) => {
     // verifies equality of received password hash with stored password hash
     const passwordValid = verify(data.password.trim(), user.password_hash);
     if (passwordValid) {
+      // setting the cookie as the user id
+      setCookie(c, COOKIE_KEY, user.id, {
+        path: "/",
+        domain: "localhost",
+        httpOnly: true,
+        sameSite: "lax"
+      });
       return c.json({
         "message": `Logged in as user with id ${user.id}`,
       });
@@ -71,6 +87,17 @@ app.post("/api/auth/register", async (c) => {
         "message": "Invalid email or password!",
       });
     }
+  });*/
+
+  // Assignment Cookies: Registering and logging in
+  const COOKIE_KEY_EMAIL = "email";
+
+  app.post("/api/auth/login", async (c) => {
+    
+  });
+
+  app.post("/api/auth/register", async (c) => {
+    
   });
 
   // Username: in: JSON with property username, out: JSON with property data
@@ -79,5 +106,23 @@ app.post("/api/auth/register", async (c) => {
     console.log("data received by BE server", data)
     return c.json( {data: data.username} );
   });
+
+  // COOKIES
+  const COOKIE_KEY = "visited";
+
+  app.get("/bla", async (c) => {
+    let visit = getCookie(c, COOKIE_KEY);
+    console.log(visit)
+    visit = visit ? parseInt(visit) + 1 : 1;
+    console.log("visit after count up", visit)
+    setCookie(c, COOKIE_KEY, visit.toString);
+    if (visit === 1){
+      return c.json({ message: "Welcome!" });
+    }
+    else {
+      return c.json( { message: "Welcome back"})
+    }
+  });
+
 
 export default app;
