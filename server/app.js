@@ -93,6 +93,16 @@ app.post("/api/auth/register", async (c) => {
   const COOKIE_KEY_EMAIL = "email";
 
   app.post("/api/auth/login", async (c) => {
+    const data = await c.req.json();
+
+    try {
+        await sql`INSERT INTO users (email, password_hash) 
+        VALUES (${data.email.trim().toLowerCase()}, 
+        ${hash(data.password.trim())}) RETURNING *`;
+    }
+    catch {
+        console.log("internal error")
+    }
     
   });
 
