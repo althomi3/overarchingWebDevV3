@@ -52,7 +52,7 @@ app.post("/api/auth/register", async (c) => {
 
 // Login
   const COOKIE_KEY_AUTH = "auth";
-  /*app.post("/api/auth/login", async (c) => {
+  app.post("/api/auth/login", async (c) => {
     const data = await c.req.json();
     
     // looks up user based on receives email in DB
@@ -72,7 +72,7 @@ app.post("/api/auth/register", async (c) => {
     const passwordValid = verify(data.password.trim(), user.password_hash);
     if (passwordValid) {
       // setting the cookie as the user id
-      setCookie(c, COOKIE_KEY, user.id, {
+      setCookie(c, COOKIE_KEY_AUTH, user.id, {
         path: "/",
         domain: "localhost",
         httpOnly: true,
@@ -87,10 +87,10 @@ app.post("/api/auth/register", async (c) => {
         "message": "Invalid email or password!",
       });
     }
-  });*/
+  });
 
   // Assignment Cookies: Registering and logging in
-  const COOKIE_KEY_EMAIL = "email";
+  /*const COOKIE_KEY_EMAIL = "email";
 
   app.post("/api/auth/login", async (c) => {
     const data = await c.req.json();
@@ -101,21 +101,72 @@ app.post("/api/auth/register", async (c) => {
         ${hash(data.password.trim())}) RETURNING *`;
     }
     catch {
-        console.log("internal error")
+        console.log("internal error on login")
     }
     
   });
 
   app.post("/api/auth/register", async (c) => {
+    const data = await c.req.json();
+    const result = await sql`SELECT * FROM users
+      WHERE username = ${data.username.trim().toLowerCase()}`;
+
+      if (result.length === 0) {
+        c.status(401);
+        return c.json({
+          "message": "Incorrect username or password.",
+        });
+      }
     
-  });
+    const user = result[0];
+    const passwordValid = verify(data.password.trim(), user.password_hash);
+    if (passwordValid) {
+      // setting the cookie as the user id
+      setCookie(c, COOKIE_KEY_EMAIL, user.username);
+      return c.json({
+        "message": `Welcome!`,
+      });
+    } else {
+        c.status(401);
+        return c.json({
+        "message": "Incorrect username or password.",
+      });
+    }
+  });*/
+
+
 
   // Username: in: JSON with property username, out: JSON with property data
+  /*app.post("/api/user", async (c) => {
+    const data = await c.req.json(); // gets data property which contains username
+    console.log("data received by BE server", data)
+    return c.json( {data: data.username} );
+  });*/
+
+  // ASSIGNMENT: Showing cookie value on client - Tracking users with cookies
+  const COOKIE_KEY_COOKIE = "cookie" // sets cookie name
   app.post("/api/user", async (c) => {
     const data = await c.req.json();
     console.log("data received by BE server", data)
-    return c.json( {data: data.username} );
-  });
+
+    // looks up user based on receives email in DB
+  
+      // setting the cookie as the user id
+      setCookie(c, COOKIE_KEY_COOKIE, data.username, {
+        path: "/",
+        domain: "localhost",
+        httpOnly: true,
+        sameSite: "lax"
+      });
+      return c.json({data: "Cookie set"});
+    }
+  );
+
+  /**
+    const data = await c.req.json(); // gets data property which contains username
+    console.log("data received by BE server", data)
+    setCookie(c, COOKIE_KEY_COOKIE, data.username); // sets cookie and returns Set Cookie Header with cookie name "cookie"
+    return c.json( {data: data.username} ); */
 
   // COOKIES
   const COOKIE_KEY = "visited";
