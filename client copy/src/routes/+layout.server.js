@@ -1,0 +1,1 @@
+export const ssr = false; // disables server-side rendering. thereby, rendering is done client-sided

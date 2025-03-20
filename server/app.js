@@ -1,138 +1,140 @@
 import { Hono } from "@hono/hono";
-import { cors } from "@hono/hono/cors";
-import { logger } from "@hono/hono/logger";
-import postgres from "postgres";
-import { hash, verify } from "jsr:@denorg/scrypt@4.4.4";
-import { getCookie, setCookie } from "jsr:@hono/hono@4.6.5/cookie";
-
-// Passwords / Hashes
-const hashedPassword = hash("saippuakivikauppias");
-console.log(hashedPassword);
-
-const passwordsMatch = verify("saippuakivikauppias", hashedPassword);
-console.log(passwordsMatch); // true: string matches hash
-
-const passwordsDoNotMatch = verify("password", hashedPassword);
-console.log(passwordsDoNotMatch); // false: string does not match hash
+import { cors } from "@hono/hono/cors"; // imports CORS middleware from honoe
+import * as questionsController from "./questionsController.js";
+import * as courseController from "./courseController.js"
 
 
+// CORS = cross-origin resource sharing policy with which we define
+// which requests are allowed for cross-origins
+// import { logger } from "@hono/hono/logger";
+// import { ERROR_CTX_CONSOLE_DISCONNECT } from "https://deno.land/std@0.132.0/node/internal_binding/_winerror.ts";
 
-const app = new Hono();
-const sql = postgres();
+const app = new Hono(); // instantiates hono object from hono web framework
+// app.use('/*', cors()); // instantiates app object to use cors middle ware. * means that all resources are allowed for corss-origin sharing
 
-app.use(
-  "/*",
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  }),
-);
+app.use(cors({
+    origin: '*', // Allows all origins (change to specific domain in production)
+    allowMethods: ['GET', 'POST','DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+  }));
 
-app.use("/*", logger());
+// ---PROJECT IMPLEMENTATIONN SERVER SIDE---
 
-app.get("/", (c) => c.json({ message: "Hello world!" }));
+let questions = []; //initializes empty list to store questions
+//Change for deployment
 
-// AUTHENTIFICATION
-// Create user account
-app.post("/api/auth/register", async (c) => {
-    const data = await c.req.json(); // receives email and password from user
-    // // converts email to lower case, hashes password and inserts both into DB users
+// LP: ROUTING LANDING PAGE
+app.get("/", (c) => c.text("This is the Backend LP to the Questions Forum"));
 
-    try {
-        await sql`INSERT INTO users (email, password_hash) 
-        VALUES (${data.email.trim().toLowerCase()}, 
-        ${hash(data.password.trim())}) RETURNING *`;
-    }
-    catch {
-        console.log("internal error")
-    }
-    
-    return c.json({ "message": `Confirmation email sent to address ${data.email.trim().toLowerCase()}.` });
-  });
+// GET 
+//__________________________________________________
 
-// Login
-  const COOKIE_KEY_AUTH = "auth";
-  /*app.post("/api/auth/login", async (c) => {
-    const data = await c.req.json();
-    
-    // looks up user based on receives email in DB
-    const result = await sql`SELECT * FROM users
-      WHERE email = ${data.email.trim().toLowerCase()}`;
+// A: ROUTING GET REQUEST / /COURSES PATH
+// client queries server with GET request, server returns the following JSON document
+// CRUD: READ
+app.get("/api/courses", courseController.getCourses)
+// gets all courses from DB
 
-      if (result.length === 0) {
-        c.status(401);
-        return c.json({
-          "message": "Invalid email or password!",
-        });
-      }
-    
-    const user = result[0];
-    
-    // verifies equality of received password hash with stored password hash
-    const passwordValid = verify(data.password.trim(), user.password_hash);
-    if (passwordValid) {
-      // setting the cookie as the user id
-      setCookie(c, COOKIE_KEY, user.id, {
-        path: "/",
-        domain: "localhost",
-        httpOnly: true,
-        sameSite: "lax"
-      });
-      return c.json({
-        "message": `Logged in as user with id ${user.id}`,
-      });
-    } else {
-        c.status(401);
-        return c.json({
-        "message": "Invalid email or password!",
-      });
-    }
-  });*/
+// CRUD: READ
+app.get( "/api/courses/:id/questions", questionsController.getQuestionsByCourseId)
+// returns all questions for a course
 
-  // Assignment Cookies: Registering and logging in
-  const COOKIE_KEY_EMAIL = "email";
+// B: ROUTING / GET REQUEST / /COURSES/:ID
+//__________________________________________________
+// client queries server on path /courses/:id
+// server returns a JSON document:
+//'{"course": {"id": :id, "name": "Course Name" } }'
+// The name is a string (just "Course Name", not e.g. "Web Software Development",
+//':id' is retrieved from the path and is a number).
 
-  app.post("/api/auth/login", async (c) => {
-    const data = await c.req.json();
+// CRUD: READ
+app.get("/api/courses/:id", courseController.getCoursesByID);
+// gets course by specific id
 
-    try {
-        await sql`INSERT INTO users (email, password_hash) 
-        VALUES (${data.email.trim().toLowerCase()}, 
-        ${hash(data.password.trim())}) RETURNING *`;
-    }
-    catch {
-        console.log("internal error")
-    }
-    
-  });
+// POST
+// C: POST REQUEST / /COURSES
+//__________________________________________________
+// clients query server to /courses path and send json data with post request
+    // body contains a JSON document that looks as follows: '{"name": "Course Name" }'
+// server returns a JSON document:  
+    // returns a JSON document that looks as follows: '{"course": {"id": 3, "name": "Course Name" } }'. 
+    // The value for "id" is always 3, but the name of the course should be extracted from the request.
 
-  app.post("/api/auth/register", async (c) => {
-    
-  });
+// CRUD: READ
+/*app.post("/api//courses", async (c) => { // returns course data
+    const post_data = await c.req.json(); // retrieves json data from http request body
+    // console.log(`this is the json data`, post_data); // for debugging
+    const course_name = post_data.name; // accesses course name property
+    // console.log('Course name:', course_name); // for debugging
+    const return_data = {"course": {"id":3, "name": course_name}} // defined json data for response
+    return c.json(return_data); // returns json response
+});*/
 
-  // Username: in: JSON with property username, out: JSON with property data
-  app.post("/api/user", async (c) => {
-    const data = await c.req.json();
-    console.log("data received by BE server", data)
-    return c.json( {data: data.username} );
-  });
+app.post("/api/courses", ...courseController.createCourse); // create new course to DB
+// response: {"id":1,"name":"Course Name"}%  
 
-  // COOKIES
-  const COOKIE_KEY = "visited";
 
-  app.get("/bla", async (c) => {
-    let visit = getCookie(c, COOKIE_KEY);
-    console.log(visit)
-    visit = visit ? parseInt(visit) + 1 : 1;
-    console.log("visit after count up", visit)
-    setCookie(c, COOKIE_KEY, visit.toString);
-    if (visit === 1){
-      return c.json({ message: "Welcome!" });
-    }
-    else {
-      return c.json( { message: "Welcome back"})
-    }
-  });
+// CRUD: CREATE/UPDATE
+app.post("api/courses/:id/questions", ...questionsController.createQuestion)
+// create a question for a specific course
+
+// CRUD: UPDATE
+app.post( "/api/courses/:id/questions/:qId/upvote", questionsController.upvoteQuestion)
+// increments upvote attribute and returns updated question
+
+// DELETE 
+//__________________________________________________
+// CRUD: DELETE
+app.delete( "api/courses/:id/questions/:qId",questionsController.deleteQuestionById )
+// deletes question by course id and question id
+
+app.delete("/api/courses/:id", courseController.deleteCourseById);
+// deletes course by ID
+
+
+
+// E: GET REQUEST / /courses/:cId/topics/:tId/posts
+//__________________________________________________
+// clients query request to server and send ':cId' and ':tId' are path variables
+// server returns a JSON document that looks as follows: 
+// '{"posts": [ {"id": 1, "title": "Post 1" }, {"id": 2, "title": "Post 2" } ] }'. 
+// Nothing is done with the path variables.
+
+//app.get("/courses/:cId/topics/:tId/posts", (c) => {
+   // const cID = c.req.param("cId");
+    //const tID = c.req.param("tId");
+    //const response_data = {"posts": [ {"id": 1, "title": "Post 1" }, {"id": 2, "title": "Post 2" } ] };
+    //return c.json(response_data);
+//});
+
+// D: GET REQUEST / /courses/:id/topics
+// clients query server with GET request
+// ':id' is a path variable
+// server returns a JSON document that looks as follows: 
+// '{"topics": [ { "id": 1, "name": "Topic 1" }, {"id": 2, "name": "Topic 2" } ] }'. 
+// Nothing is done with the path variable.
+// app.get("/courses/:id/topics", (c) => {
+    // const id = c.req.param("id"); // stores path variable from request
+    //const response_data = {"topics": [ { "id": 1, "name": "Topic 1" }, {"id": 2, "name": "Topic 2" } ] }; // defines json response
+    // return c.json(response_data); // returns json response
+// });
+
+
+
+// F: GET REQUEST / /courses/:cId/topics/:tId/posts/:pId
+// clients query the server and send ':cId', ':tId', and ':pId' as path variables
+// server returns a JSON document that looks as follows: 
+// '{"post": {"id": :pId, "title": "Post Title" }, "answers": [ { "id": 1, "content": "Answer 1" }, {"id": 2, "content": "Answer 2" } ] }'. 
+// The path variables :cId and :tId are not used.
+
+// app.get("/courses/:cId/topics/:tId/posts/:pId", (c) => {
+   // const cID = c.req.param("cId");
+    // const tID = c.req.param("tId");
+    // const pID = Number(c.req.param("pId")); // converts text-based id into number, all http requests are text-based
+    // const response_data = {"post": {"id": pID, "title": "Post Title" }, "answers": [ { "id": 1, "content": "Answer 1" }, {"id": 2, "content": "Answer 2" } ] }
+    // return c.json(response_data);
+//});
+
 
 
 export default app;
