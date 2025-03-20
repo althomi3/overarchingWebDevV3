@@ -3,7 +3,7 @@ import { PUBLIC_INTERNAL_API_URL } from "$env/static/public"; // need to use int
 console.log("PUBLIC_INTERNAL_API_URL", PUBLIC_INTERNAL_API_URL)
 
   // const PUBLIC_INTERNAL_API_URL = "http://server:8000"
-
+  const COOKIE_KEY = "auth";
   const apiRequest = async (url, data) => {
     return await fetch(`${PUBLIC_INTERNAL_API_URL}${url}`, {
       method: "POST",
@@ -15,7 +15,7 @@ console.log("PUBLIC_INTERNAL_API_URL", PUBLIC_INTERNAL_API_URL)
   };
 
   export const actions = {
-    login: async ({ request }) => {
+    login: async ({ request, cookies }) => {
       const data = await request.formData();
       const response = await apiRequest(
         "/api/auth/login",
@@ -23,11 +23,17 @@ console.log("PUBLIC_INTERNAL_API_URL", PUBLIC_INTERNAL_API_URL)
       );
 
       if (response.ok) {
+        const responseCookies = response.headers.getSetCookie();
+        const cookie = responseCookies.find((cookie) =>
+          cookie.startsWith(COOKIE_KEY),
+        );
+        const cookieValue = cookie.split("=")[1].split(";")[0];
+        cookies.set(COOKIE_KEY, cookieValue, { path: "/", secure: false });  
         throw redirect(302, "/"); // redirects user to landing page after login
       }
-
       return await response.json();
     },
+
     register: async ({ request }) => {
       const data = await request.formData();
       const response = await apiRequest(
