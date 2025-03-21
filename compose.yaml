@@ -10,6 +10,7 @@ services:
       - server
 
   database:
+
     container_name: postgresql_database_v9
     image: postgres:17.0
     restart: unless-stopped
