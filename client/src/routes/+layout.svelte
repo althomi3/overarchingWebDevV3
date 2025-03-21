@@ -30,4 +30,9 @@
       </main>
     <Footer />  
   </div>
-</ToastProvider>
+  
+  <footer>
+  <Footer />
+      
+  </footer>
+ 
