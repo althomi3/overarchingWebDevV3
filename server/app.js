@@ -2,6 +2,11 @@ import { Hono } from "@hono/hono";
 import { cors } from "@hono/hono/cors"; // imports CORS middleware from honoe
 import * as questionsController from "./questionsController.js";
 import * as courseController from "./courseController.js"
+//import { logger } from "@hono/hono/logger";
+import postgres from "postgres";
+import { hash, verify } from "jsr:@denorg/scrypt@4.4.4";
+import { getCookie, setCookie } from "jsr:@hono/hono@4.6.5/cookie";
+import * as jwt from "jsr:@hono/hono@4.6.5/jwt";
 
 
 // CORS = cross-origin resource sharing policy with which we define
@@ -9,14 +14,20 @@ import * as courseController from "./courseController.js"
 // import { logger } from "@hono/hono/logger";
 // import { ERROR_CTX_CONSOLE_DISCONNECT } from "https://deno.land/std@0.132.0/node/internal_binding/_winerror.ts";
 
+const COOKIE_KEY = "token";
+const JWT_SECRET = "wsd-project-secre";
+
 const app = new Hono(); // instantiates hono object from hono web framework
 // app.use('/*', cors()); // instantiates app object to use cors middle ware. * means that all resources are allowed for corss-origin sharing
+const sql = postgres();
 
 app.use(cors({
     origin: '*', // Allows all origins (change to specific domain in production)
     allowMethods: ['GET', 'POST','DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
   }));
+
+
 
 // ---PROJECT IMPLEMENTATIONN SERVER SIDE---
 
@@ -90,6 +101,74 @@ app.delete( "api/courses/:id/questions/:qId",questionsController.deleteQuestionB
 
 app.delete("/api/courses/:id", courseController.deleteCourseById);
 // deletes course by ID
+
+
+//---ENDPOINT FOR USER AND AUTHENTICATION
+
+// REGISTER NEW USER
+app.post("/api/auth/register", async (c) => {
+    const data = await c.req.json(); // receives email and password from user
+    // // converts email to lower case, hashes password and inserts both into DB users
+
+    try {
+        await sql`INSERT INTO users (email, password_hash) 
+        VALUES (${data.email.trim().toLowerCase()}, 
+        ${hash(data.password.trim())}) RETURNING *`;
+    }
+    catch {
+        console.log("internal error")
+    }
+    
+    return c.json({ "message": `Confirmation email sent to address ${data.email.trim().toLowerCase()}.` });
+  });
+
+// LOGIN
+  app.post("/api/auth/login", async (c) => {
+    const data = await c.req.json();
+    
+    // looks up user based on receives email in DB
+    const result = await sql`SELECT * FROM users
+      WHERE email = ${data.email.trim().toLowerCase()}`;
+
+      if (result.length === 0) {
+        c.status(401);
+        return c.json({
+          "message": "Invalid email or password!",
+        });
+      }
+    
+    const user = result[0];
+    
+    // verifies equality of received password hash with stored password hash
+    const passwordValid = verify(data.password.trim(), user.password_hash);
+    if (passwordValid) {
+
+      const payload = { // defines payload for JWT
+        id: user.id,
+      }
+
+      const token = await jwt.sign(payload, JWT_SECRET); // defines token with payload and key
+
+      // setting the cookie as the user id with user id as token from JWT
+      setCookie(c, COOKIE_KEY, token, { 
+        path: "/",
+        domain: "localhost",
+        httpOnly: true,
+        sameSite: "lax"
+      });
+      
+      return c.json({
+        "message": `Logged in as user with id ${user.id}`,
+      });
+    } else {
+        c.status(401);
+        return c.json({
+        "message": "Invalid email or password!",
+      });
+    }
+  });
+  //---ENDPOINT FOR USER AND AUTHENTICATION
+
 
 
 

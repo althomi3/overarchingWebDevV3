@@ -35,4 +35,5 @@
   <Footer />
       
   </footer>
+</ToastProvider>
  
