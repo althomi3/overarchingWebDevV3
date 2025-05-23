@@ -8,26 +8,23 @@
   import { ToastProvider } from "@skeletonlabs/skeleton-svelte";
 
   const userState = useUserState(); // initializes user state
-  if (data.user) {
-    userState.user = data.user; // adds data on user object. the data comes from the hook.server.js which fetches data
-    // from cookies. here, we stored the user name in a cookie which is now stored in the shared user state object
-  }
+    if (data.user) {
+        userState.user = data.user; // adds data on user object. the data comes from the hook.server.js which fetches data
+        // from cookies. here, we stored the user name in a cookie which is now stored in the shared user state object
+    }
 
 </script>
-<!--{#if data.user}
-  <p>Hello {data.user}!</p>
-{/if}-->
-{#if data.user}
-  <p>Hello {data.user}!</p>
-{/if}
 
 <ToastProvider>
   <div class="flex flex-col h-full">
     <Header/>
       
       <main class="container mx-auto max-w-2xl grow">
-        {@render children()}
-      </main>
+              {#if userState.user?.email}
+          <p class="text-sm text-right">{userState.user.email}</p>
+        {/if}
+      {@render children()}
+    </main>
     <Footer />  
   </div>
   
@@ -36,5 +33,4 @@
       
   </footer>
 </ToastProvider>
-
  

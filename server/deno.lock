@@ -356,7 +356,8 @@
     "dependencies": [
       "jsr:@denorg/scrypt@4.4.4",
       "jsr:@hono/hono@4.6.5",
-      "npm:@hono/zod-validator@*"
+      "npm:@hono/zod-validator@*",
+      "npm:jose@^6.0.11"
     ]
   }
 }

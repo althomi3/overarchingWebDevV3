@@ -3,7 +3,8 @@ import { PUBLIC_INTERNAL_API_URL } from "$env/static/public"; // need to use int
 console.log("PUBLIC_INTERNAL_API_URL", PUBLIC_INTERNAL_API_URL)
 
   // const PUBLIC_INTERNAL_API_URL = "http://server:8000"
-  const COOKIE_KEY = "auth";
+  const COOKIE_KEY = "token";
+  
   const apiRequest = async (url, data) => {
     return await fetch(`${PUBLIC_INTERNAL_API_URL}${url}`, {
       method: "POST",
@@ -42,7 +43,7 @@ console.log("PUBLIC_INTERNAL_API_URL", PUBLIC_INTERNAL_API_URL)
       );
 
       if (response.ok) {
-        throw redirect(302, "/auth/login?registered=true");
+        throw redirect(302, "/auth/login"); // "/auth/login?registered=true"
       }
 
       return await response.json();
