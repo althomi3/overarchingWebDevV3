@@ -20,6 +20,7 @@
       e.preventDefault();
     };*/
 </script>
+
   
   <h2 class="text-xl pb-4">
     {data.action === "login" ? "Login" : "Register"} form

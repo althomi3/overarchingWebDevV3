@@ -15,7 +15,7 @@ import * as jwt from "jsr:@hono/hono@4.6.5/jwt";
 // import { ERROR_CTX_CONSOLE_DISCONNECT } from "https://deno.land/std@0.132.0/node/internal_binding/_winerror.ts";
 
 const COOKIE_KEY = "token";
-const JWT_SECRET = "wsd-project-secre";
+const JWT_SECRET = "wsd-project-secret";
 
 const app = new Hono(); // instantiates hono object from hono web framework
 // app.use('/*', cors()); // instantiates app object to use cors middle ware. * means that all resources are allowed for corss-origin sharing
@@ -133,18 +133,19 @@ app.post("/api/auth/register", async (c) => {
       if (result.length === 0) {
         c.status(401);
         return c.json({
-          "message": "Invalid email or password!",
+          "message": "Incorrect email or password.",
         });
       }
     
-    const user = result[0];
+    const user = result[0]; // user data assigned to const "user"
     
     // verifies equality of received password hash with stored password hash
     const passwordValid = verify(data.password.trim(), user.password_hash);
     if (passwordValid) {
 
-      const payload = { // defines payload for JWT
-        id: user.id,
+      const payload = { // defines payload for JWT = user's email
+        //id: user.id,
+        email: user.email,
       }
 
       const token = await jwt.sign(payload, JWT_SECRET); // defines token with payload and key
@@ -158,12 +159,13 @@ app.post("/api/auth/register", async (c) => {
       });
       
       return c.json({
-        "message": `Logged in as user with id ${user.id}`,
+        //"message": `Logged in as user with id ${user.email}`,
+        "message": `Logged in as user with id ${user.email}`,
       });
     } else {
         c.status(401);
         return c.json({
-        "message": "Invalid email or password!",
+        "message": "Incorrect email or password.",
       });
     }
   });
