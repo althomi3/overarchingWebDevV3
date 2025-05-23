@@ -11,7 +11,7 @@ services:
 
   database:
 
-    container_name: postgresql_database_v9
+    container_name: postgresql_database_v10
     image: postgres:17.0
     restart: unless-stopped
     env_file:

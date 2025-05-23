@@ -1,11 +1,9 @@
 import { zValidator } from "zValidator"; 
-
-
 import * as questionsRepo from "./questionsRepo.js";
 import { questionValidator } from "./questionsValidator.js";
 
-// import { questionsValidator } from "./questionsValidator.js";
 
+// QUESTIONS
 const createQuestion = [zValidator("json", questionValidator), async (c) => {
     const data = await c.req.valid("json"); // request contains {"title": "Question title", "text": "Question text" }
     const courseId = Number(c.req.param("id"));
@@ -30,6 +28,41 @@ const getQuestionsByCourseId = async (c) => {
         return c.json(questions);*/
     return c.json(await questionsRepo.readQuestionsByCourseId(courseId));
 };
+
+const getQuestionsByCourseIdAndQuestionId = async (c) => {
+    const courseId = Number(c.req.param("id"));
+    const questionId = Number(c.req.param("qId"));
+    console.log("Controller getQuestionsByCourseIdAndQuestionId", "Course ID", courseId, "Question ID", questionId)
+    /*(c) => {
+        console.log("Successful request of question list", questions)
+        return c.json(questions);*/
+    return c.json(await questionsRepo.readQuestionsByCourseIdAndQuestionId(courseId, questionId));
+};
+
+// ANSWERS
+const createAnswer= async (c) => {
+    const data = await c.req.valid("json");
+    const questionId = Number(c.req.param("qid"));
+    console.log("request body", data);
+    console.log("id", questionId);
+    const upvotes = 0;
+    const answer = {"text": data.text, "upvotes": upvotes};
+    console.log("new question", new_question);
+    // questions.push(new_question);
+    // console.log("updated question data", questions);
+    if (!data) {
+        return c.json({ error: "Invalid data" }, 400); // Handle invalid data
+      }
+    return c.json(await questionsRepo.createQuestion(new_question, courseId));
+
+}
+
+const getQuestionAnswerByCourseAndQuestionID = async (c) => {
+    const questionId = Number(c.req.param("qId"));
+    console.log("Controller getQuestionAnswerByCourseAndQuestionID", "Question ID", questionId)
+    return c.json(await questionsRepo.readAnswerByCourseAndQuestionId(questionId));
+};
+
 
 const getQuestions = async (c) => {
     const id = Number(c.req.param("id"));
@@ -68,4 +101,11 @@ const deleteQuestionById = async (c) => {
 };
 
 
-export { createQuestion, getQuestionsByCourseId, upvoteQuestion, deleteQuestionById}
+export { 
+    createQuestion, 
+    getQuestionsByCourseId, 
+    upvoteQuestion, 
+    deleteQuestionById, 
+    getQuestionsByCourseIdAndQuestionId,
+    getQuestionAnswerByCourseAndQuestionID
+}

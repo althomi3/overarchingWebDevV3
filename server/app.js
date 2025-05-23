@@ -36,8 +36,14 @@ app.get("/api/courses", courseController.getCourses)
 // gets all courses from DB
 
 // CRUD: READ
-app.get( "/api/courses/:id/questions", questionsController.getQuestionsByCourseId)
+
 // returns all questions for a course
+app.get( "/api/courses/:id/questions", questionsController.getQuestionsByCourseId)
+// returns all question of a course with a specific course id and the question id
+app.get( "/api/courses/:id/questions/:qId", questionsController.getQuestionsByCourseIdAndQuestionId)
+app.get( "/api/courses/:id/questions/:qId/answers", questionsController.getQuestionAnswerByCourseAndQuestionID)
+
+
 
 // B: ROUTING / GET REQUEST / /COURSES/:ID
 //__________________________________________________
@@ -70,17 +76,15 @@ app.get("/api/courses/:id", courseController.getCoursesByID);
     return c.json(return_data); // returns json response
 });*/
 
+// COURSES CRUD: CREATE/UPDATE
 app.post("/api/courses", ...courseController.createCourse); // create new course to DB
 // response: {"id":1,"name":"Course Name"}%  
-
-
-// CRUD: CREATE/UPDATE
 app.post("api/courses/:id/questions", ...questionsController.createQuestion)
 // create a question for a specific course
-
-// CRUD: UPDATE
 app.post( "/api/courses/:id/questions/:qId/upvote", questionsController.upvoteQuestion)
 // increments upvote attribute and returns updated question
+app.post('/api/courses/:id/questions/:qId/answers', questionsController.createAnswer)
+
 
 // DELETE 
 //__________________________________________________

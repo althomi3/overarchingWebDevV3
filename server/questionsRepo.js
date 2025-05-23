@@ -12,7 +12,17 @@ const createQuestion = async (question, courseId) => {
 const readQuestionsByCourseId = async (id) => {
   // Retrieve a book item with the given id
   return await sql`SELECT * FROM questions WHERE course_id = ${id}`; 
+};
 
+const readQuestionsByCourseIdAndQuestionId = async (id, qid) => {
+  // Retrieve a book item with the given id
+  return await sql`SELECT * FROM questions WHERE course_id = ${id} AND id = ${qid}`; 
+};
+
+const readAnswerByCourseAndQuestionId = async (qid) => {
+  // does return all properties except the user identifier
+  return await sql`SELECT id, question_id, upvotes, text 
+  FROM question_answers WHERE question_id = ${qid}`;
 };
 
 const updateQuestiongById = async (questionId) => {
@@ -36,4 +46,10 @@ const removeQuestionByID = async (courseId, questionId) => {
   };
   
 
-export { createQuestion, readQuestionsByCourseId, updateQuestiongById, removeQuestionByID };
+export { 
+  createQuestion, 
+  readQuestionsByCourseId, 
+  updateQuestiongById, 
+  removeQuestionByID, 
+  readQuestionsByCourseIdAndQuestionId,
+  readAnswerByCourseAndQuestionId };
